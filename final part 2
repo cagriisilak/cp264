@@ -1,0 +1,109 @@
+/**
+ * -------------------------------------
+ * @file  deque_linked.c
+ * Linked deque Source Code File
+ * -------------------------------------
+ * @author  Cagri Isilak, 210764050, isil4050@mylaurier.ca
+ *
+ * @version 2023-12-09
+ *
+ * -------------------------------------
+ */
+// Includes
+#include "deque_linked.h"
+
+// Functions
+‌‌​​‌​​​‌‌​‌‌​​​​‌
+// Task: Swaps two nodes within a Deque.
+void deque_swap(deque_linked_struct *source, deque_node *one, deque_node *two) {
+
+	if (one == NULL || two == NULL) {
+        return;
+    }
+
+    if (one->prev != NULL) {
+        one->prev->next = two;
+    } else {
+        source->front = two;
+    }
+
+    if (two->next != NULL) {
+        two->next->prev = one;
+    } else {
+        source->rear = one;
+    }
+
+    deque_node *temp = one->next;
+    one->next = two->next;
+    two->next = temp;
+
+    temp = one->prev;
+    one->prev = two->prev;
+    two->prev = temp;
+}
+
+// Other functions remain unchanged
+
+// ==============================================================
+// DO NOT CHANGE ANYTHING BELOW THIS LINE
+
+// Initializes a deque.
+void deque_initialize(deque_linked_struct **source) {
+    *source = malloc(sizeof **source);
+    assert(*source != NULL);
+    (*source)->front = NULL;
+    (*source)->rear = NULL;
+    (*source)->count = 0;
+    return;
+}
+
+// Destroys a deque.
+void deque_destroy(deque_linked_struct **source) {
+    // Free the linked data
+    while((*source)->front != NULL) {
+        deque_node *temp = (*source)->front;
+        (*source)->front = (*source)->front->next;
+        free(temp);
+        temp = NULL;
+    }
+    // Free the deque header
+    (*source)->rear = NULL;
+    (*source)->count = 0;
+    free(*source);
+    *source = NULL;
+    return;
+}
+
+// Inserts an item into the front of a deque.
+bool deque_insert_front(deque_linked_struct *source, const data_type *item) {
+    deque_node *node = malloc(sizeof *node);
+    assert(node != NULL);
+    node->item = malloc(sizeof *node->item);
+    assert(node->item != NULL);
+    data_copy(node->item, item);
+    node->next = source->front;
+
+    if(source->front == NULL) {
+        source->rear = node;
+    } else {
+        source->front->prev = node;
+    }
+    source->front = node;
+    source->count++;
+    return true;
+}
+
+// Prints the items in a deque from front to rear.
+void deque_print(const deque_linked_struct *source) {
+    char string[DATA_STRING_SIZE];
+    deque_node *node = source->front;
+    printf("  count: %d\n  contents: {", source->count);
+
+    while(node != NULL) {
+        printf("%s, ", data_string(string, sizeof string, node->item));
+        node = node->next;
+    }
+    printf("}\n");
+    return;
+}
+

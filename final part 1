@@ -1,0 +1,141 @@
+/**
+ * -------------------------------------
+ * @file  bst.c
+ * BST functions Source Code File
+ * -------------------------------------
+ * @author  Cagri Isilak, 210764050, isil4050@mylaurier.ca
+ *
+ * @version 2023-12-09
+ *
+ * -------------------------------------
+ */
+#include "bst.h"
+
+// Task‌‌​​‌​​​‌‌​‌‌​​​​‌​​‌​‌‌​‌​​: Splits a BST into two trees, odd values into odd, even values into even.
+void segregateTrees(bst_node* root, bst_node** odd, bst_node** even) {
+
+	if (root == NULL) {
+        return;
+    }
+
+    segregateTrees(root->lc, odd, even);
+
+    if (root->key % 2 == 0) {
+        *even = insertNode(*even, root->key);
+    } else {
+        *odd = insertNode(*odd, root->key);
+    }
+
+    segregateTrees(root->rc, odd, even);
+}
+
+
+static int isAVLHelper(bst_node* root, int* height) {
+
+    if (root == NULL) {
+        *height = 0;
+        return 1;
+    }
+
+    int leftHeight, rightHeight;
+    int isLeftAVL = isAVLHelper(root->lc, &leftHeight);
+    int isRightAVL = isAVLHelper(root->rc, &rightHeight);
+
+    *height = max(leftHeight, rightHeight) + 1;
+
+    if (abs(leftHeight - rightHeight) <= 1 && isLeftAVL && isRightAVL) {
+        return 1;
+    }
+
+    return 0;
+}
+
+// Task‌‌​​‌​​​‌‌​‌‌​​​​‌​​‌​‌‌​‌​​: Determines if a BST meets the AVL conditions.
+int isAVL(bst_node* root) {
+
+    int height;
+    return isAVLHelper(root, &height);
+}
+
+
+static int nodesAtLevelHelper(bst_node* root, int level, int currentLevel) {
+
+    if (root == NULL) {
+        return 0;
+    }
+
+    if (currentLevel == level) {
+        return 1;
+    }
+
+    return nodesAtLevelHelper(root->lc, level, currentLevel + 1) +
+           nodesAtLevelHelper(root->rc, level, currentLevel + 1);
+}
+
+// Task‌‌​​‌​​​‌‌​‌‌​​​​‌​​‌​‌‌​‌​​: Counts the number of nodes at a given level of a BST.
+int nodesAtLevel(bst_node* root, int level) {
+    return nodesAtLevelHelper(root, level, 1);
+}‌‌​​‌​​​‌‌​‌‌​​​​‌​
+
+// ==============================================================
+// DO NOT CHANGE ANYTHING BELOW THIS LINE
+
+// Determines which of two integers is larger.
+int max(int a, int b) {
+    if(a > b)
+        return a;
+    else
+        return b;
+}
+
+// Returns the height of a BST node.
+int bst_returnHeight(bst_node *root) {
+    if(root == NULL)
+        return 0;
+    else
+        return root->height;
+}
+
+// Inserts a value into a BST
+static bst_node* insertNode(bst_node* root, int value) {
+	if (root == NULL) {
+        root = malloc(sizeof(bst_node));
+        root->key = value;
+        root->height = 1;
+        root->lc = NULL;
+        root->rc = NULL;
+        return root;
+    }
+
+    if (value < root->key) {
+        root->lc = insertNode(root->lc, value);
+        root->height = max(bst_returnHeight(root->lc), bst_returnHeight(root->rc)) + 1;
+    } else if (value > root->key) {
+        root->rc = insertNode(root->rc, value);
+        root->height = max(bst_returnHeight(root->lc), bst_returnHeight(root->rc)) + 1;
+    }
+
+    return root;
+}
+
+
+// Destroys a BST.
+void bst_destroy(bst_node *node) {
+    if(node == NULL)
+        return;
+
+    bst_destroy(node->lc);
+    bst_destroy(node->rc);
+    free(node);
+}
+
+// Prints the contents of a base in preorder.
+void bst_print(bst_node *node) {
+    if(node == NULL)
+        return;
+
+    printf("%d ", node->key);
+    bst_print(node->lc);
+    bst_print(node->rc);
+}
+

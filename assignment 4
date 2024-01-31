@@ -1,0 +1,515 @@
+/**
+ * -------------------------------------
+ * @file  list_linked.c
+ * Linked List Source Code File
+ * -------------------------------------
+ * @Cagri Isilak, 210764050, isil4050@mylaurier.ca
+ *
+ * @version 2023-10-20
+ *
+ * -------------------------------------
+ */
+#include "list_linked.h"
+
+// Private helper functions
+
+/**
+ * Determines if an index is valid.
+ *
+ * @param list - pointer to a list.
+ * @param i - index to check
+ * @return - true if i is a valid index, false otherwise
+ */
+static bool valid_index(const list_linked_struct *source, int i) {
+    return ((i >= 0) && (i <= source->count));
+}
+
+// Functions
+
+// Initializes a list.
+void list_initialize(list_linked_struct **source, data_type_copy copy, data_type_string to_string,
+        data_type_compare compare, data_type_destroy destroy) {
+
+    *source = (list_linked_struct *)malloc(sizeof(list_linked_struct));
+    (*source)->front = NULL;
+    (*source)->rear = NULL;
+    (*source)->count = 0;
+    (*source)->copy = copy;
+    (*source)->to_string = to_string;
+    (*source)->compare = compare;
+    (*source)->destroy = destroy;
+}
+
+// Destroys a list.
+void list_destroy(list_linked_struct **source) {
+
+    while ((*source)->front != NULL) {
+        list_node *temp = (*source)->front;
+        (*source)->front = (*source)->front->next;
+        (*source)->destroy(&(temp->item));
+        free(temp);
+    }
+
+    free(*source);
+    *source = NULL;
+}
+
+// Determines if a list is empty.
+bool list_empty(const list_linked_struct *source) {
+
+	return (source->count == 0);
+}
+
+// Determines if the list is full.
+bool list_full(const list_linked_struct *source) {
+    return false;
+}
+
+// Appends a item to the end of a list.
+bool list_append(list_linked_struct *source, data_type *item) {
+
+    list_node *new_node = (list_node *)malloc(sizeof(list_node));
+    if (new_node == NULL) {
+        return false;
+    }
+
+    new_node->item = (data_type *)malloc(sizeof(data_type));
+    if (new_node->item == NULL) {
+        free(new_node);
+        return false;
+    }
+
+    source->copy(new_node->item, item);
+    new_node->next = NULL;
+
+    if (source->rear == NULL) {
+        source->front = new_node;
+        source->rear = new_node;
+    } else {
+        source->rear->next = new_node;
+        source->rear = new_node;
+    }
+
+    source->count++;
+
+    return true;
+}
+
+// Prepends a item to the front of a list.
+bool list_prepend(list_linked_struct *source, data_type *item) {
+
+    list_node *new_node = (list_node *)malloc(sizeof(list_node));
+    if (new_node == NULL) {
+        return false;
+    }
+
+    new_node->item = (data_type *)malloc(sizeof(data_type));
+    if (new_node->item == NULL) {
+        free(new_node);
+        return false;
+    }
+
+    source->copy(new_node->item, item);
+    new_node->next = source->front;
+    source->front = new_node;
+
+    if (source->rear == NULL) {
+        source->rear = new_node;
+    }
+
+    source->count++;
+
+    return true;
+}
+
+// Returns the number of items in the list.
+int list_count(const list_linked_struct *source) {
+    return source->count;
+}
+
+// Inserts a item to a list at location i.
+bool list_insert(list_linked_struct *source, data_type *item, int i) {
+
+    if (!valid_index(source, i)) {
+        return false;
+    }
+
+    if (i == 0) {
+        return list_prepend(source, item);
+    } else if (i == source->count) {
+        return list_append(source, item);
+    }
+
+    list_node *new_node = (list_node *)malloc(sizeof(list_node));
+    if (new_node == NULL) {
+        return false;
+    }
+
+    new_node->item = (data_type *)malloc(sizeof(data_type));
+    if (new_node->item == NULL) {
+        free(new_node);
+        return false;
+    }
+
+    source->copy(new_node->item, item);
+
+    list_node *current = source->front;
+    for (int index = 0; index < i - 1; index++) {
+        current = current->next;
+    }
+
+    new_node->next = current->next;
+    current->next = new_node;
+
+    source->count++;
+
+    return true;
+}
+
+// Returns a copy of the front of a list.
+bool list_peek(const list_linked_struct *source, data_type *item) {
+
+    if (list_empty(source)) {
+        return false;
+    }
+
+    source->copy(item, source->front->item);
+    return true;
+}
+
+// Returns a copy of the item matching key in a list.
+bool list_key_find(const list_linked_struct *source, const data_type *key, data_type *item) {
+
+    list_node *current = source->front;
+    while (current != NULL) {
+        if (source->compare(current->item, key) == 0) {
+            source->copy(item, current->item);
+            return true;
+        }
+        current = current->next;
+    }
+
+    return false;
+}
+
+// Removes and returns the item matching key from the list.
+bool list_key_remove(list_linked_struct *source, const data_type *key, data_type *item) {
+
+    if (list_empty(source)) {
+        return false;
+    }
+
+    list_node *current = source->front;
+    list_node *prev = NULL;
+
+    while (current != NULL) {
+        if (source->compare(current->item, key) == 0) {
+            if (prev != NULL) {
+                prev->next = current->next;
+            } else {
+                source->front = current->next;
+                if (source->front == NULL) {
+                    source->rear = NULL;
+                }
+            }
+
+            source->copy(item, current->item);
+            free(current->item);
+            free(current);
+
+            source->count--;
+            return true;
+        }
+
+        prev = current;
+        current = current->next;
+    }
+
+    return false;
+}
+
+// Returns the index of key in list. -1 if key not in list.
+int list_key_index(const list_linked_struct *source, const data_type *key) {
+
+    list_node *current = source->front;
+
+    int index = 0;
+    while (current != NULL) {
+        if (source->compare(current->item, key) == 0) {
+            return index;
+        }
+
+        current = current->next;
+        index++;
+    }
+
+    return -1;
+}
+
+// Determines if key is in a list.
+bool list_key_contains(const list_linked_struct *source, const data_type *key) {
+
+	return list_key_index(source, key) != -1;
+}
+
+// Determines number of times key appears in list.
+int list_key_count(const list_linked_struct *source, const data_type *key) {
+
+    list_node *current = source->front;
+
+    int count = 0;
+    while (current != NULL) {
+        if (source->compare(current->item, key) == 0) {
+            count++;
+        }
+        current = current->next;
+    }
+
+    return count;
+}
+
+// Removes and returns the item at index i from a list.
+bool list_index_remove(list_linked_struct *source, data_type *item, int i) {
+
+    if (!valid_index(source, i) || list_empty(source)) {
+        return false;
+    }
+
+    list_node *current = source->front;
+    list_node *prev = NULL;
+
+    for (int index = 0; index < i; index++) {
+        prev = current;
+        current = current->next;
+    }
+
+    if (prev != NULL) {
+        prev->next = current->next;
+    } else {
+        source->front = current->next;
+        if (source->front == NULL) {
+            source->rear = NULL;
+        }
+    }
+
+    source->copy(item, current->item);
+    free(current->item);
+    free(current);
+
+    source->count--;
+
+    return true;
+}
+
+// Finds the maximum item in a list.
+bool list_max(const list_linked_struct *source, data_type *item) {
+
+    if (list_empty(source)) {
+        return false;
+    }
+
+    list_node *current = source->front;
+    source->copy(item, current->item);
+
+    while (current != NULL) {
+        if (source->compare(current->item, item) > 0) {
+            source->copy(item, current->item);
+        }
+        current = current->next;
+    }
+
+    return true;
+}
+
+// Finds the minimum item in a list.
+bool list_min(const list_linked_struct *source, data_type *item) {
+
+    if (list_empty(source)) {
+        return false; // List is empty
+    }
+
+    list_node *current = source->front;
+    source->copy(item, current->item);
+
+    while (current != NULL) {
+        if (source->compare(current->item, item) < 0) {
+            source->copy(item, current->item);
+        }
+        current = current->next;
+    }
+
+    return true;
+}
+
+// Removes all duplicate items from a list.
+void list_clean(list_linked_struct *source) {
+
+    if (list_empty(source)) {
+        return;
+    }
+
+    list_node *current = source->front;
+    list_node *next;
+
+    while (current != NULL) {
+        next = current->next;
+        free(current->item);
+        free(current);
+        current = next;
+    }
+
+    source->front = NULL;
+    source->rear = NULL;
+    source->count = 0;
+}
+
+// Compares two lists for equality.
+bool list_equal(const list_linked_struct *target, const list_linked_struct *source) {
+
+    if (target->count != source->count) {
+        return false;
+    }
+
+    list_node *current_target = target->front;
+    list_node *current_source = source->front;
+
+    while (current_target != NULL) {
+        if (source->compare(current_source->item, current_target->item) != 0) {
+            return false;
+        }
+
+        current_target = current_target->next;
+        current_source = current_source->next;
+    }
+
+    return true;
+}
+
+// Combines the contents of two source lists into a target list. Items alternate.
+void list_combine(list_linked_struct *target, list_linked_struct *source1, list_linked_struct *source2) {
+
+    if (list_empty(source1) && list_empty(source2)) {
+        return;
+    }
+
+    target->front = NULL;
+    target->rear = NULL;
+    target->count = 0;
+
+    list_node *current1 = source1->front;
+    list_node *current2 = source2->front;
+
+    while (current1 != NULL || current2 != NULL) {
+        if (current1 != NULL) {
+            list_append(target, current1->item);
+            current1 = current1->next;
+        }
+
+        if (current2 != NULL) {
+            list_append(target, current2->item);
+            current2 = current2->next;
+        }
+    }
+}
+
+// Splits a source list alternately into two target lists. Items alternate.
+void list_split_alt(list_linked_struct *target1, list_linked_struct *target2, list_linked_struct *source) {
+
+    if (list_empty(source)) {
+        return;
+    }
+
+    target1->front = NULL;
+    target1->rear = NULL;
+    target1->count = 0;
+
+    target2->front = NULL;
+    target2->rear = NULL;
+    target2->count = 0;
+
+    list_node *current = source->front;
+    bool alternate = true;
+
+    while (current != NULL) {
+        if (alternate) {
+            list_append(target1, current->item);
+        } else {
+            list_append(target2, current->item);
+        }
+
+        current = current->next;
+        alternate = !alternate;
+    }
+}
+
+// Splits a source list into two target lists at the middle of the source list.
+void list_split(list_linked_struct *target1, list_linked_struct *target2, list_linked_struct *source) {
+
+    if (list_empty(source)) {
+        return;
+    }
+
+    target1->front = NULL;
+    target1->rear = NULL;
+    target1->count = 0;
+
+    target2->front = NULL;
+    target2->rear = NULL;
+    target2->count = 0;
+
+    int mid = source->count / 2;
+    list_node *current = source->front;
+    int index = 0;
+
+    while (current != NULL) {
+        if (index < mid) {
+            list_append(target1, current->item);
+        } else {
+            list_append(target2, current->item);
+        }
+
+        current = current->next;
+        index++;
+    }
+}
+
+// Splits a source list into two target lists based upon a key value.
+void list_split_key(list_linked_struct *target1, list_linked_struct *target2, list_linked_struct *source,
+        data_type *key) {
+
+    if (list_empty(source)) {
+        return;
+    }
+
+    target1->front = NULL;
+    target1->rear = NULL;
+    target1->count = 0;
+
+    target2->front = NULL;
+    target2->rear = NULL;
+    target2->count = 0;
+
+    list_node *current = source->front;
+
+    while (current != NULL) {
+        if (source->compare(current->item, key) < 0) {
+            list_append(target1, current->item);
+        } else {
+            list_append(target2, current->item);
+        }
+
+        current = current->next;
+    }
+}
+
+// Prints the items in a list from front to rear.
+void list_print(const list_linked_struct *source) {
+    char string[DATA_STRING_SIZE];
+    list_node *current = source->front;
+
+    while(current != NULL) {
+        printf("%s\n", source->to_string(string, DATA_STRING_SIZE, current->item));
+        current = current->next;
+    }
+    return;
+}

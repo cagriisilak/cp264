@@ -1,0 +1,133 @@
+/**
+ -------------------------------------
+ @file  functions.c
+ Lab 1 Functions Source Code File
+ -------------------------------------
+ Author:  Cagri Isilak
+ ID:      210764050
+ Email:   isil4050@mylaurier.ca
+ Version: 2023-10-04
+ -------------------------------------
+ */
+#include "functions.h"
+
+// Task‌‌​​‌​​‌​​​​​​​​​​​‌​​​‌​​‌​: inserts key at in the array at index and pushes the rest of the array forward
+int insert(int Array[], int index, int key, int *size) {
+	if (*size >= MAX_SIZE) {
+	        return -1;
+	    }
+	    if (index < 0) {
+	        index = 0;
+	    } else if (index > *size) {
+	        index = *size;
+	    }
+	    for (int i = *size; i > index; i--) {
+	        Array[i] = Array[i - 1];
+	    }
+	    Array[index] = key;
+	    (*size)++;
+	    return 1;
+}
+
+// Task‌‌​​‌​​‌​​​​​​​​​​​‌​​​‌​​‌​: Treats parameters greater than index 1 as integers
+// and returns their total.
+void MatrixToArrayInSpriral(int Matrix[][MAT_DIM], int Array[]) {
+	int rowStart = 0, rowEnd = MAT_DIM - 1;
+	int colStart = 0, colEnd = MAT_DIM - 1;
+	int index = 0;
+
+	while (rowStart <= rowEnd && colStart <= colEnd) {
+
+		for (int i = colStart; i <= colEnd; i++) {
+			Array[index++] = Matrix[rowStart][i];
+	    }
+	    rowStart++;
+
+
+	    for (int i = rowStart; i <= rowEnd; i++) {
+	        Array[index++] = Matrix[i][colEnd];
+	    }
+	    colEnd--;
+
+	    if (rowStart <= rowEnd) {
+	    	for (int i = colEnd; i >= colStart; i--) {
+	    		Array[index++] = Matrix[rowEnd][i];
+	    	}
+	        rowEnd--;
+	    }
+
+	    if (colStart <= colEnd) {
+	        for (int i = rowEnd; i >= rowStart; i--) {
+	            Array[index++] = Matrix[i][colStart];
+	        }
+	        colStart++;
+}
+}
+}
+
+
+// Task‌‌​​‌​​‌​​​​​​​​​​​‌​​​‌​​‌​: Treats parameters greater than index 1 as doubles
+// and returns their total.
+
+int isValidRow(int A[][SUDOKU], int row) {
+    int seen[SUDOKU + 1] = {0};
+    for (int i = 0; i < SUDOKU; i++) {
+        if (seen[A[row][i]] != 0) {
+            return 0;
+        }
+        seen[A[row][i]] = 1;
+    }
+    return 1;
+}
+
+int isValidColumn(int A[][SUDOKU], int column) {
+    int seen[SUDOKU + 1] = {0};
+    for (int i = 0; i < SUDOKU; i++) {
+        if (seen[A[i][column]] != 0) {
+            return 0;
+        }
+        seen[A[i][column]] = 1;
+    }
+    return 1;
+}
+
+int isValidSquare(int A[][SUDOKU], int row, int column) {
+    int seen[SUDOKU + 1] = {0};
+    for (int i = row; i < row + 3; i++) {
+        for (int j = column; j < column + 3; j++) {
+            if (seen[A[i][j]] != 0) {
+                return 0;
+            }
+            seen[A[i][j]] = 1;
+        }
+    }
+    return 1;
+}
+
+int isSudokuSolution(int Sudoku[SUDOKU][SUDOKU]) {
+    for (int i = 0; i < SUDOKU; i++) {
+        if (!isValidRow(Sudoku, i)) {
+            return -1;
+        }
+        if (!isValidColumn(Sudoku, i)) {
+            return -2;
+        }
+    }
+    for (int i = 0; i < SUDOKU; i += 3) {
+        for (int j = 0; j < SUDOKU; j += 3) {
+            if (!isValidSquare(Sudoku, i, j)) {
+                return -3;
+            }
+        }
+    }
+    return 1;
+}
+
+// Prints contents of an array.
+void printArray(int Arr[], const int size) {
+    printf("\nArray = {");
+    for(int i = 0; i < size - 1; i++) {
+        printf("%d, ", Arr[i]);
+    }
+    printf("%d}\n", Arr[size - 1]);
+}

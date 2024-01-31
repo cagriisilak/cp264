@@ -1,0 +1,123 @@
+/**
+ * -------------------------------------
+ * @file  functions.c
+ * Lab 2 Functions Source Code File
+ * -------------------------------------
+ * @Cagri Isilak, 210764050, isil4050@mylaurier.ca
+ *
+ * @version 2023-09-09
+ *
+ * -------------------------------------
+ */
+#include "../src2/functions.h"
+
+int read_three_integers(void) {
+    char *buffer = NULL;
+    size_t size = 0;
+    int total = 0;
+    int num1, num2, num3;
+    int filled;
+
+    printf("Enter lines with three integers (or less to stop):\n");
+
+    while (1) {
+        getline(&buffer, &size, stdin);
+
+        filled = sscanf(buffer, "%d %d %d", &num1, &num2, &num3);
+
+        if (filled == 3) {
+            total += num1 + num2 + num3;
+        } else if (filled <= 0) {
+            break;
+        }
+    }
+
+    free(buffer);
+    return total;
+}
+
+double read_doubles(void) {
+    int count;
+    double total = 0;
+
+    do {
+        printf("Enter the count: ");
+        scanf("%d", &count);
+        getchar();
+
+        if (count <= 0) {
+            printf("Count must be greater than 0.\n");
+        }
+    } while (count <= 0);
+
+    printf("Enter %d doubles:\n", count);
+
+    for (int i = 0; i < count; i++) {
+        double num;
+        int filled;
+
+        filled = scanf("%lf", &num);
+
+        if (filled == 1) {
+            total += num;
+        } else {
+            printf("Not a valid double\n");
+            getchar();
+            i--;
+        }
+    }
+
+    printf("Total: %lf\nCount: %d\n", total, count);
+    return total / count;
+}
+
+// Demonstrates use of getline.
+void read_string(void) {
+	// Define an empty string.
+	char *buffer = NULL;
+	// Define the buffer size and character counts.
+	size_t size = 0;
+	size_t chars = 0;
+	// Read the string from the keyboard (stdin).
+	printf("Enter a string: ");
+	chars = getline(&buffer, &size, stdin);
+	printf("\nbuffer:     \"%s\"\n", buffer);
+	printf("size:       %zu\n", size);
+	printf("characters: %zu\n", chars);
+	// Trim end of line characters (Windows, Mac, or Linux)
+	buffer[strcspn(buffer, "\r\n")] = '\0';
+	printf("trimmed:    \"%s\"\n", buffer);
+	// Free the string memory.
+	free(buffer);
+	return;
+}
+
+// Reads and totals a series of integers read one at a time from the keyboard.
+int read_integers(void) {
+	// Define an empty string.
+	char *buffer = NULL;
+	// Define the buffer size.
+	size_t size = 0;
+	int filled = 0;
+	// Define the integer to be read and the total.
+	int num = 0;
+	int total = 0;
+
+	printf("Enter integers, one per line:\n");
+	// Read the string.
+	getline(&buffer, &size, stdin);
+	// Parse the string.
+	filled = sscanf(buffer, "%d", &num);
+	printf("filled: %d\n", filled);
+
+	while (filled > 0) {
+		// Read and parse until a non-integer is entered.
+		total += num;
+		getline(&buffer, &size, stdin);
+		filled = sscanf(buffer, "%d", &num);
+		printf("filled: %d\n", filled);
+	}
+	// Free the string memory.
+	free(buffer);
+	return total;
+}

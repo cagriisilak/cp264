@@ -1,0 +1,103 @@
+/**
+ * -------------------------------------
+ * @file  functions.c
+ * Lab 3 Functions Source Code File
+ * -------------------------------------
+ * @author name, id, email
+ *
+ * @version 2023-09-20
+ *
+ * -------------------------------------
+ */
+#include "functions.h"
+
+int customer_read(const char *buffer, customer_struct *customer) {
+    int result = sscanf(buffer, "%d,%f,%10s,%15[^,],%15[^,]", &customer->id, &customer->balance, customer->date, customer->forename, customer->surname);
+    if (result != 5) {
+        return -1;
+    }
+    return 0;
+}
+
+
+int customers_read(FILE *fp, customers_struct *customers) {
+    char *line = NULL;
+    size_t len = 0;
+    size_t read;
+
+    int count = 0;
+    while ((read = getline(&line, &len, fp)) != -1) {
+        if (count >= ARRAY_SIZE) {
+            break;
+        }
+        if (customer_read(line, &(customers->data[count])) == 0) {
+            count++;
+        }
+    }
+    free(line);
+
+    customers->count = count;
+    return count;
+}
+
+void customer_print(const customer_struct *customer) {
+    printf("%05d %8.2f %s %-15s %-15s\n", customer->id, customer->balance, customer->date, customer->forename, customer->surname);
+}
+
+
+int customer_best(const customers_struct *customers) {
+    int best_index = 0;
+    float max_balance = customers->data[0].balance;
+
+    for (int i = 1; i < customers->count; i++) {
+        if (customers->data[i].balance > max_balance) {
+            max_balance = customers->data[i].balance;
+            best_index = i;
+        }
+    }
+
+    return best_index;
+}
+
+
+int customer_first(const customers_struct *customers) {
+    int first_index = 0;
+    const char *first_date = customers->data[0].date;
+
+    for (int i = 1; i < customers->count; i++) {
+        if (strcmp(customers->data[i].date, first_date) < 0) {
+            first_date = customers->data[i].date;
+            first_index = i;
+        }
+    }
+
+    return first_index;
+}
+
+// Demonstration of string splitting / parsing.
+void split_string(char *string) {
+	char str1[STRING_SIZE] = "";
+	char str2[STRING_SIZE] = "";
+	int int1 = 0;
+	int filled = sscanf(string, "%17[^,],%17[^,],%d", str1, str2, &int1);
+	printf("filled: %d\n", filled);
+	printf("str1: %s\n", str1);
+	printf("str2: %s\n", str2);
+	printf("int1: %d\n", int1);
+}
+
+// Reads the contents of a text file into a string.
+size_t read_file(const char *filename, char **buffer, size_t *size) {
+	size_t chars = 0;
+	FILE *fp = fopen(filename, "r");
+
+	if (fp == NULL) {
+		// filename could not be opened - set error value
+		chars = -1;
+	} else {
+		// Read contents of file until null character / '\0' / EOF
+		chars = getdelim(buffer, size, '\0', fp);
+		fclose(fp);
+	}
+	return chars;
+}

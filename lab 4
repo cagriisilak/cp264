@@ -1,0 +1,127 @@
+/**
+ * -------------------------------------
+ * @file  queue_dynamic.c
+ * Lab 5 Dynamic queue Source Code File
+ * -------------------------------------
+ * @author name, id, email
+ *
+ * @version 2023-10-01
+ *
+ * -------------------------------------
+ */
+#include "queue_dynamic.h"
+
+// Functions
+
+// Initializes a queue.
+queue_struct* queue_initialize(data_type_string to_string, data_type_copy copy) {
+	queue_struct* queue = malloc(sizeof(queue_struct));
+
+	if (queue == NULL) {
+	    fprintf(stderr, "Memory allocation failed\n");
+	    exit(EXIT_FAILURE);
+	}
+
+	queue->capacity = QUEUE_INIT;
+	queue->count = 0;
+	queue->front = 0;
+	queue->rear = -1;
+	queue->items = malloc(queue->capacity * sizeof(data_type));
+
+	if (queue->items == NULL) {
+	    fprintf(stderr, "Memory allocation failed\n");
+	    free(queue);
+	    exit(EXIT_FAILURE);
+	}
+
+	queue->to_string = to_string;
+	queue->copy = copy;
+
+	return queue;
+}
+
+// Destroys a queue.
+void queue_destroy(queue_struct **queue) {
+    free((*queue)->items);
+    free(*queue);
+    *queue = NULL;
+}
+
+// Determines if a queue is empty.
+bool queue_empty(const queue_struct *queue) {
+	return queue->count == 0;
+}
+
+// Determines if the queue is full.
+bool queue_full(const queue_struct *queue) {
+    return false;
+}
+
+// Returns the number of items in the queue.
+int queue_count(const queue_struct *queue) {
+	return queue->count;
+}
+
+// Inserts an item into a queue.
+bool queue_insert(queue_struct *queue, data_type *item) {
+    if (queue->count == queue->capacity) {
+        queue->capacity *= 2;
+        queue->items = realloc(queue->items, queue->capacity * sizeof(data_type));
+
+        if (queue->items == NULL) {
+            fprintf(stderr, "Memory reallocation failed\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    queue->rear = (queue->rear + 1) % queue->capacity;
+    queue->copy(&(queue->items[queue->rear]), item);
+    queue->count++;
+
+    return true;
+}
+
+// Returns a copy of the front of a queue.
+bool queue_peek(const queue_struct *queue, data_type *item) {
+    if (queue_empty(queue)) {
+        return false;
+    }
+
+    queue->copy(item, &(queue->items[queue->front]));
+
+    return true;
+}
+
+// Returns and removes the item on the front of a queue.
+bool queue_remove(queue_struct *queue, data_type *item) {
+    if (queue_empty(queue)) {
+        return false;
+    }
+
+    queue->copy(item, &(queue->items[queue->front]));
+    queue->front = (queue->front + 1) % queue->capacity;
+    queue->count--;
+
+    if (queue->count == 0) {
+        queue->front = 0;
+        queue->rear = -1;
+    }
+
+    return true;
+}
+
+// Prints the queue from front to rear.
+void queue_display(const queue_struct *queue, char string[], size_t size) {
+    printf("  capacity: %d, count: %d, front: %d, rear: %d\n  items:\n", queue->capacity, queue->count, queue->front,
+            queue->rear);
+    // Walk through queue using indexes.
+    int i = 0;
+    int index = queue->front;
+
+    while(i < queue->count) {
+        printf("%s\n", queue->to_string(&(queue->items[index]), string, size));
+        index = (index + 1) % queue->capacity;
+        i++;
+    }
+    return;
+}
